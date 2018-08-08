@@ -14,35 +14,35 @@
 #' 
 #' @export
 installspec <- function(user = NULL, name = 'ir', displayname = 'R', rprofile = NULL, prefix = NULL) {
-    exit_code <- system2('jupyter', c('kernelspec', '--version'), FALSE, FALSE)
-    if (exit_code != 0)
-        stop('jupyter-client has to be installed but ', dQuote('jupyter kernelspec --version'), ' exited with code ', exit_code, '.\n')
-
-    # default to 'user' install if neither 'user' or 'prefix' is specified
-    if (is.null(user)) user <- is.null(prefix)
-    if (user && !is.null(prefix))
-        stop('"user" and "prefix" are mutually exclusive')
-    
-    # make a kernelspec with the current interpreter's absolute path
-    srcdir <- system.file('kernelspec', package = 'IRkernel')
-    tmp_name <- tempfile()
-    dir.create(tmp_name)
-    file.copy(srcdir, tmp_name, recursive = TRUE)
-    spec_path <- file.path(tmp_name, 'kernelspec', 'kernel.json')
-    spec <- fromJSON(spec_path)
-    spec$argv[[1]] <- file.path(R.home('bin'), 'R')
-    spec$display_name <- displayname
-    if (!is.null(rprofile)) {
-        spec$env <- list(R_PROFILE_USER = rprofile)
-    }
-    write(toJSON(spec, pretty = TRUE, auto_unbox = TRUE), file = spec_path)
-    
-    user_flag <- if (user) '--user' else character(0)
-    prefix_flag <- if (!is.null(prefix)) c('--prefix', prefix) else character(0) 
-    args <- c('kernelspec', 'install', '--replace', '--name', name, user_flag, prefix_flag, file.path(tmp_name, 'kernelspec'))
-    exit_code <- system2('jupyter', args)
-    
-    unlink(tmp_name, recursive = TRUE)
-    
-    invisible(exit_code)
+  exit_code <- system2('jupyter-kernelspec', '--version', FALSE, FALSE)
+  if (exit_code != 0)
+    stop('jupyter-client has to be installed but ', dQuote('jupyter kernelspec --version'), ' exited with code ', exit_code, '.\n')
+  
+  # default to 'user' install if neither 'user' or 'prefix' is specified
+  if (is.null(user)) user <- is.null(prefix)
+  if (user && !is.null(prefix))
+    stop('"user" and "prefix" are mutually exclusive')
+  
+  # make a kernelspec with the current interpreter's absolute path
+  srcdir <- system.file('kernelspec', package = 'IRkernel')
+  tmp_name <- tempfile()
+  dir.create(tmp_name)
+  file.copy(srcdir, tmp_name, recursive = TRUE)
+  spec_path <- file.path(tmp_name, 'kernelspec', 'kernel.json')
+  spec <- fromJSON(spec_path)
+  spec$argv[[1]] <- file.path(R.home('bin'), 'R')
+  spec$display_name <- displayname
+  if (!is.null(rprofile)) {
+    spec$env <- list(R_PROFILE_USER = rprofile)
+  }
+  write(toJSON(spec, pretty = TRUE, auto_unbox = TRUE), file = spec_path)
+  
+  user_flag <- if (user) '--user' else character(0)
+  prefix_flag <- if (!is.null(prefix)) c('--prefix', prefix) else character(0) 
+  args <- c('install', '--replace', '--name', name, user_flag, prefix_flag, file.path(tmp_name, 'kernelspec'))
+  exit_code <- system2('jupyter-kernelspec', args)
+  
+  unlink(tmp_name, recursive = TRUE)
+  
+  invisible(exit_code)
 }
